@@ -1,5 +1,6 @@
 const tableLista = document.querySelector('#tableListaProductos tbody');
-document.addEventListener('DOMContentLoaded', function() {
+let productosjson = [];
+ocument.addEventListener('DOMContentLoaded', function() {
   if (tableLista) {
     getListaProductos();
   }
@@ -24,24 +25,42 @@ function getListaProductos() {
                 <td><span class="badge bg-primary">${ producto.cantidad}</span></td>
                 <td>${producto.subTotal}</td>
             </tr>`;
+            //agregar producto para paypal
+            let json = {
+              "name": producto.nombre, /* Shows within upper-right dropdown during payment approval */
+              "unit_amount": {
+                "currency_code": res.moneda,
+                "value": producto.precio
+              },
+              "quantity": producto.cantidad
+            }
+            productosjson.push(json);
         });
         tableLista.innerHTML = html;
         document.querySelector('#totalProducto').textContent = 'TOTAL A PAGAR: ' + res.moneda + ' ' + res.total;
-        botonPaypal(res.totalPaypal);
+        botonPaypal(res.totalPaypal, res.moneda);
       }
     }
   }
 
-  function botonPaypal(total) {
+  function botonPaypal(total, moneda) {
     paypal.Buttons({
       // Sets up the transaction when a payment button is clicked
       createOrder: (data, actions) => {
         return actions.order.create({
-          purchase_units: [{
-            amount: {
-              value: total // Can also reference a variable or function
-            }
-          }]
+           "purchase_units": [{
+              "amount": {
+                "currency_code": moneda,
+                "value": total,
+                "breakdown": {
+                  "item_total": {  /* Required when including the items array */
+                    "currency_code": moneda,
+                    "value": total
+                  }
+                }
+              },
+              "items": productosjson
+            }]
         });
       },
       // Finalize the transaction after payer approval
