@@ -1,6 +1,6 @@
-<?php
-class Principal extends Controller
-{
+    <?php
+    class Principal extends Controller
+    {
     public function __construct() {
         parent::__construct();
         session_start();
